@@ -30,10 +30,6 @@ function handlePage($page, $path, $assets_path, $i) {
     rm $path_docx
     rm $path_htm
     if (Test-Path $path_assets) {
-        #$abspath_assets = [IO.Path]::Combine($OUTPUT_DIR, $current_notebook, $ASSETS_DIR, $path.Substring($current_notebook.Length + 1))
-        #$abspath_assets = Join-Path $abspath_assets $filename_assets.Substring(0, $filename_assets.Length - 6) # get rid of "_files"
-        #Write-Host MOVING ASSETS: $abspath_assets
-        #New-Item -ItemType Directory -Force -Path $abspath_assets | Out-Null
         $path_assets_wild = Join-Path $path_assets "*"
         $section_assets = [IO.Path]::Combine($OUTPUT_DIR, $path, "assets")
         New-Item -ItemType Directory -Force -Path $section_assets | Out-Null
@@ -41,6 +37,16 @@ function handlePage($page, $path, $assets_path, $i) {
         $items | Rename-Item -NewName { $pagename + "_" + $_.Name };
         Move-Item -Force $path_assets_wild $section_assets
         rmdir $path_assets
+
+        # Replace image links with the right path
+        Write-Host Fixing image links
+        $LINK_REGEX = '!\[[^\]]*\]\((?<filename>.*?)(?=\"|\))(?<optionalpart>\".*\")?\)(\{.*\})?'
+        $path_md2 = -join($path_md, "2")
+        $prefix = -join($pagename, "_")
+        (Get-Content $path_md) `
+            -replace $LINK_REGEX, "![[$prefix${filename}]]" `
+            -replace 'second regex', 'second replacement' |
+          Out-File $path_md2
     }
     sleep 5
 }
