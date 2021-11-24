@@ -12,7 +12,7 @@ function handlePage($page, $path, $assets_path, $i) {
     # Make the dir if not exists
     $abspath = [IO.Path]::Combine($OUTPUT_DIR, $path)
     New-Item -ItemType Directory -Force -Path $abspath | Out-Null
-    Write-Host PAGE: $page.name at $path
+    #Write-Host PAGE: $page.name at $path
     $pagename = $page.name.Split([IO.Path]::GetInvalidFileNameChars()) -join '_'
     $pagename = -join(([string]$i).PadLeft(2,'0'), "_", $pagename)
     $filename_docx = -join($pagename, ".docx")
@@ -88,10 +88,11 @@ while ($true) {
             foreach ($section in $notebook.Section) {
                 handleSection $section $path
             }
-            break
         }
+        break
     } catch {
+        Write-Host ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         Write-Host $_
-        sleep 2
+        sleep 10
     }
 }
