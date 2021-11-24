@@ -40,13 +40,28 @@ function handlePage($page, $path, $assets_path, $i) {
 
         # Replace image links with the right path
         Write-Host Fixing image links
-        $LINK_REGEX = '!\[[^\]]*\]\((?<filename>.*?)(?=\"|\))(?<optionalpart>\".*\")?\)(\{.*\})?'
+        $LINK_REGEX = '!\[[^\]]*\]\(media\/image((.*?)\.(.*?))?(?=\"|\))(?<optionalpart>\".*\")?\)(\{.*\})?'
         $path_md2 = -join($path_md, "2")
         $prefix = -join($pagename, "_")
-        (Get-Content $path_md) `
-            -replace $LINK_REGEX, "![[$prefix${filename}]]" `
-            -replace 'second regex', 'second replacement' |
-          Out-File $path_md2
+        $hello = (Get-Content -encoding utf8 $path_md) `
+            -replace $LINK_REGEX, ("![[$prefix" + "image" + ('$2'.PadLeft(4, '0')) + '.$3]]') `
+            -replace 'jpeg', 'jpg' |
+          Out-File -Encoding utf8 $path_md2
+        Move-Item -Force $path_md2 $path_md
+        #$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+        #[System.IO.File]::WriteAllLines($path_md, $hello, $Utf8NoBomEncoding)
+
+        # Replace image links with right path
+        #$fileContent = Get-Content -Path $path_md
+        # save the result of these operations in a new variable and iterate through each line
+        #$newContent = foreach($string in $fileContent) {
+        #    # while the pattern you don't want is found it will be removed
+        #    $string = $string | -replace $LINK_REGEX, 'test replacement'
+        #    # when it's no longer found the new string is returned
+        #    $string
+        #}
+        # save the new content in the destination file
+        #Set-Content -Path $path_md -Value $newContent
     }
     sleep 5
 }
