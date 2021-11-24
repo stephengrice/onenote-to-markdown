@@ -24,11 +24,13 @@ function handlePage($page, $path, $assets_path, $i) {
     $path_md = [IO.Path]::Combine($OUTPUT_DIR, $path, $filename_md)
     $path_assets = [IO.Path]::Combine($OUTPUT_DIR, $path, $filename_assets)
     Write-Host Creating DOCX: $path_docx
-    $OneNote.Publish($page.ID, $path_docx, 5, "")
-    $OneNote.Publish($page.ID, $path_htm, 7, "")
-    pandoc.exe -i $path_docx -o $path_md -t markdown-simple_tables-multiline_tables-grid_tables --wrap=none
-    rm $path_docx
-    rm $path_htm
+    if (-Not(Test-Path $path_md)) {
+        $OneNote.Publish($page.ID, $path_docx, 5, "")
+        $OneNote.Publish($page.ID, $path_htm, 7, "")
+        pandoc.exe -i $path_docx -o $path_md -t markdown-simple_tables-multiline_tables-grid_tables --wrap=none
+        rm $path_docx
+        rm $path_htm
+    }
     if (Test-Path $path_assets) {
         $path_assets_wild = Join-Path $path_assets "*"
         $section_assets = [IO.Path]::Combine($OUTPUT_DIR, $path, "assets")
@@ -48,29 +50,14 @@ function handlePage($page, $path, $assets_path, $i) {
             -replace 'jpeg', 'jpg' |
           Out-File -Encoding utf8 $path_md2
         Move-Item -Force $path_md2 $path_md
-        #$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-        #[System.IO.File]::WriteAllLines($path_md, $hello, $Utf8NoBomEncoding)
-
-        # Replace image links with right path
-        #$fileContent = Get-Content -Path $path_md
-        # save the result of these operations in a new variable and iterate through each line
-        #$newContent = foreach($string in $fileContent) {
-        #    # while the pattern you don't want is found it will be removed
-        #    $string = $string | -replace $LINK_REGEX, 'test replacement'
-        #    # when it's no longer found the new string is returned
-        #    $string
-        #}
-        # save the new content in the destination file
-        #Set-Content -Path $path_md -Value $newContent
     }
-    sleep 5
 }
 
 function handleSection($section, $path) {
     $path = Join-Path $path $section.name
     Write-Host Section: $path
     $i=0
-    foreach($page in $section.ChildNodes) {
+    foreach($page in $section.Page) {
         handlePage $page $path $assets_path $i
         $i++
     }
@@ -80,7 +67,7 @@ function handleSectionGroup($sg, $path) {
     $path = Join-Path $path $sg.name
     if ($sg.isRecycleBin -ne 'true') {
         Write-Host Section Group: $path
-        foreach ($section in $sg.ChildNodes) {
+        foreach ($section in $sg.Section) {
             handleSection $section $path
         }
         foreach ($sg2 in $sg.SectionGroup) {
@@ -89,14 +76,22 @@ function handleSectionGroup($sg, $path) {
     }
 }
 
-foreach ($notebook in $Hierarchy.Notebooks.Notebook ) {
-    $current_notebook = $notebook.Name
-    Write-Host Notebook: $current_notebook
-    $path = $current_notebook
-    foreach ($sectiongroup in $notebook.SectionGroup) {
-        handleSectionGroup $sectiongroup $path
-    }
-    foreach ($section in $notebook.Section) {
-        handleSection $section $path
+while ($true) {
+    try{
+        foreach ($notebook in $Hierarchy.Notebooks.Notebook ) {
+            $current_notebook = $notebook.Name
+            Write-Host Notebook: $current_notebook
+            $path = $current_notebook
+            foreach ($sectiongroup in $notebook.SectionGroup) {
+                handleSectionGroup $sectiongroup $path
+            }
+            foreach ($section in $notebook.Section) {
+                handleSection $section $path
+            }
+            break
+        }
+    } catch {
+        Write-Host $_
+        sleep 2
     }
 }
