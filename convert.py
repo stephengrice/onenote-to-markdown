@@ -37,7 +37,7 @@ def fix_image_names(md_path, image_names):
     tmp_path = md_path + '.tmp'
     i = 0
     with open(md_path, 'r', encoding='utf-8') as f_md:
-        with open(tmp_path, 'w') as f_tmp:
+        with open(tmp_path, 'w', encoding='utf-8') as f_tmp:
             body_md = f_md.read()
             for i,name in enumerate(image_names):
                 # TODO assumes all are png
