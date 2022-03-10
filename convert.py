@@ -16,11 +16,12 @@ def extract_pdf_pictures(pdf_path, assets_path, page_name):
     os.makedirs(assets_path, exist_ok=True)
     image_names = []
     doc = fitz.open(pdf_path)
+    img_num = 0
     for i in range(len(doc)):
         for img in doc.get_page_images(i):
             xref = img[0]
             pix = fitz.Pixmap(doc, xref)
-            png_name = "%s_%s.png" % (page_name, xref)
+            png_name = "%s_%s.png" % (page_name, str(img_num).zfill(3))
             png_path = os.path.join(assets_path, png_name)
             print("writing png %s" % png_path)
             if pix.n < 5:
@@ -31,6 +32,7 @@ def extract_pdf_pictures(pdf_path, assets_path, page_name):
                 pix1 = None
             pix = None
             image_names.append(png_name)
+            img_num += 1
     return image_names
 
 def fix_image_names(md_path, image_names):
@@ -45,12 +47,12 @@ def fix_image_names(md_path, image_names):
             f_tmp.write(body_md)
     shutil.move(tmp_path, md_path)
 
-def handle_page(onenote, elem, path):
+def handle_page(onenote, elem, path, i):
     print(elem.attrib['name'])
     full_path = os.path.join(OUTPUT_DIR, path)
     os.makedirs(full_path, exist_ok=True)
     path_assets = os.path.join(full_path, ASSETS_DIR)
-    safe_name = safe_str(elem.attrib['name'])
+    safe_name = safe_str("%s_%s" % (str(i).zfill(3), elem.attrib['name']))
     safe_path = os.path.join(full_path, safe_name)
     path_docx = safe_path + '.docx'
     path_pdf = safe_path + '.pdf'
@@ -74,24 +76,24 @@ def handle_page(onenote, elem, path):
     os.remove(path_docx)
     os.remove(path_pdf)
 
-def handle_element(onenote, elem, path=''):
+def handle_element(onenote, elem, path='', i=0):
     if elem.tag.endswith('Notebook'):
         print('Notebook!', elem.attrib['name'])
         hier2 = onenote.GetHierarchy(elem.attrib['ID'], win32.constants.hsChildren, "")
-        for c2 in ElementTree.fromstring(hier2):
-            handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])))
+        for i,c2 in enumerate(ElementTree.fromstring(hier2)):
+            handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])), i)
     elif elem.tag.endswith('Section'):
         print('Section!', elem.attrib['name'])
         hier2 = onenote.GetHierarchy(elem.attrib['ID'], win32.constants.hsPages, "")
-        for c2 in ElementTree.fromstring(hier2):
-            handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])))
+        for i,c2 in enumerate(ElementTree.fromstring(hier2)):
+            handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])), i)
     elif elem.tag.endswith('SectionGroup'):
         print('SectionGroup!', elem.attrib['name'])
         hier2 = onenote.GetHierarchy(elem.attrib['ID'], win32.constants.hsSections, "")
-        for c2 in ElementTree.fromstring(hier2):
-            handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])))
+        for i,c2 in enumerate(ElementTree.fromstring(hier2)):
+            handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])), i)
     elif elem.tag.endswith('Page'):
-        handle_page(onenote, elem, path)
+        handle_page(onenote, elem, path, i)
 
 if __name__ == "__main__":
     onenote = win32.gencache.EnsureDispatch("OneNote.Application.12")
