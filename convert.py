@@ -44,7 +44,7 @@ def fix_image_names(md_path, image_names):
         with open(tmp_path, 'w', encoding='utf-8') as f_tmp:
             body_md = f_md.read()
             for i,name in enumerate(image_names):
-                # TODO assumes all are png
+                # TODO assumes all are png - maybe an issue?
                 body_md = body_md.replace("media/image%d.png" % (i+1), name)
             f_tmp.write(body_md)
     shutil.move(tmp_path, md_path)
