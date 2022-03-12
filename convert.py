@@ -4,6 +4,8 @@ import shutil
 
 import fitz
 import win32com.client as win32
+import pywintypes
+import traceback
 from xml.etree import ElementTree
 
 OUTPUT_DIR = os.path.join(os.path.expanduser('~'), "Desktop", "OneNoteExport")
@@ -23,7 +25,7 @@ def extract_pdf_pictures(pdf_path, assets_path, page_name):
             pix = fitz.Pixmap(doc, xref)
             png_name = "%s_%s.png" % (page_name, str(img_num).zfill(3))
             png_path = os.path.join(assets_path, png_name)
-            print("writing png %s" % png_path)
+            print("Writing png: %s" % png_path)
             if pix.n < 5:
                 pix.save(png_path)
             else:
@@ -48,7 +50,6 @@ def fix_image_names(md_path, image_names):
     shutil.move(tmp_path, md_path)
 
 def handle_page(onenote, elem, path, i):
-    print(elem.attrib['name'])
     full_path = os.path.join(OUTPUT_DIR, path)
     os.makedirs(full_path, exist_ok=True)
     path_assets = os.path.join(full_path, ASSETS_DIR)
@@ -65,6 +66,7 @@ def handle_page(onenote, elem, path, i):
     # Create docx
     onenote.Publish(elem.attrib['ID'], path_docx, win32.constants.pfWord, "")
     # Convert docx to markdown
+    print("Generating markdown: %s" % path_md)
     os.system('pandoc.exe -i %s -o %s -t markdown-simple_tables-multiline_tables-grid_tables --wrap=none' % (path_docx, path_md))
     # Create pdf (for the picture assets)
     onenote.Publish(elem.attrib['ID'], path_pdf, 3, "")
@@ -78,17 +80,14 @@ def handle_page(onenote, elem, path, i):
 
 def handle_element(onenote, elem, path='', i=0):
     if elem.tag.endswith('Notebook'):
-        print('Notebook!', elem.attrib['name'])
         hier2 = onenote.GetHierarchy(elem.attrib['ID'], win32.constants.hsChildren, "")
         for i,c2 in enumerate(ElementTree.fromstring(hier2)):
             handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])), i)
     elif elem.tag.endswith('Section'):
-        print('Section!', elem.attrib['name'])
         hier2 = onenote.GetHierarchy(elem.attrib['ID'], win32.constants.hsPages, "")
         for i,c2 in enumerate(ElementTree.fromstring(hier2)):
             handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])), i)
     elif elem.tag.endswith('SectionGroup'):
-        print('SectionGroup!', elem.attrib['name'])
         hier2 = onenote.GetHierarchy(elem.attrib['ID'], win32.constants.hsSections, "")
         for i,c2 in enumerate(ElementTree.fromstring(hier2)):
             handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])), i)
@@ -96,10 +95,15 @@ def handle_element(onenote, elem, path='', i=0):
         handle_page(onenote, elem, path, i)
 
 if __name__ == "__main__":
-    onenote = win32.gencache.EnsureDispatch("OneNote.Application.12")
+    try:
+        onenote = win32.gencache.EnsureDispatch("OneNote.Application.12")
 
-    hier = onenote.GetHierarchy("", win32.constants.hsNotebooks, "")
+        hier = onenote.GetHierarchy("", win32.constants.hsNotebooks, "")
 
-    root = ElementTree.fromstring(hier)
-    for child in root:
-        handle_element(onenote, child)
+        root = ElementTree.fromstring(hier)
+        for child in root:
+            handle_element(onenote, child)
+
+    except pywintypes.com_error as e:
+        traceback.print_exc()
+        print("!!!Error!!! Hint: Make sure OneNote is open first.")
