@@ -12,7 +12,7 @@ from xml.etree import ElementTree
 OUTPUT_DIR = os.path.join(os.path.expanduser('~'), "Desktop", "OneNoteExport")
 ASSETS_DIR = "assets"
 PROCESS_RECYCLE_BIN = False
-LOGFILE = 'onenote_to_markdown.log'
+LOGFILE = 'onenote_to_markdown.log' # Set to None to disable logging
 
 def log(message):
     print(message)
