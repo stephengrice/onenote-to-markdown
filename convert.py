@@ -17,11 +17,11 @@ LOGFILE = 'onenote_to_markdown.log' # Set to None to disable logging
 def log(message):
     print(message)
     if LOGFILE is not None:
-        with open(LOGFILE, 'a') as lf:
-            lf.write("%s\n" % message)
+        with open(LOGFILE, 'a', encoding='UTF-8') as lf:
+            lf.write(f'{message}\n')
 
 def safe_str(name):
-    return  re.sub(r'[^.a-zA-Z0-9]', '_', name)
+    return  re.sub(r'[^.a-zA-Z0-9א-ת]', '_', name)
 
 def extract_pdf_pictures(pdf_path, assets_path, page_name):
     os.makedirs(assets_path, exist_ok=True)
