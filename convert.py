@@ -26,7 +26,10 @@ def safe_str(name):
 def extract_pdf_pictures(pdf_path, assets_path, page_name):
     os.makedirs(assets_path, exist_ok=True)
     image_names = []
-    doc = fitz.open(pdf_path)
+    try:
+        doc = fitz.open(pdf_path)
+    except:
+        return []
     img_num = 0
     for i in range(len(doc)):
         for img in doc.get_page_images(i):
