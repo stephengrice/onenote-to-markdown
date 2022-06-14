@@ -34,3 +34,18 @@ This version is a bit more finnicky. It may fail, but feel free to try! Open Pow
 ```ps1
 .\convert3.ps1
 ```
+
+## Troubleshooting
+
+### `AttributeError: module 'win32com.gen_py...` has no attribute 'CLSIDToClassMap'
+
+Try [this link](https://stackoverflow.com/questions/52889704/python-win32com-excel-com-model-started-generating-errors), and [this one](https://stackoverflow.com/questions/33267002/why-am-i-suddenly-getting-a-no-attribute-clsidtopackagemap-error-with-win32com). In short:
+
+1. Run `python3` to get an interpreter and execute:
+
+```python
+import win32com
+print(win32com.__gen_path__)
+```
+
+2. Delete the `gen_py` folder indicated in the output of the previous step.
