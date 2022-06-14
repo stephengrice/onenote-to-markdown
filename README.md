@@ -7,7 +7,7 @@
 
 ## Python Version
 
-**Video coming soon**
+**Video/blog post: https://pagekeytech.com/blog/misc/onenote-to-markdown-python**
 
 1. Install the requirements.
 
