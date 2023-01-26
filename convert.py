@@ -1,6 +1,7 @@
 import re
 import os
 import shutil
+import sys
 
 import fitz
 import win32com.client as win32
@@ -108,7 +109,10 @@ def handle_element(onenote, elem, path='', i=0):
         for i,c2 in enumerate(ElementTree.fromstring(hier2)):
             handle_element(onenote, c2, os.path.join(path, safe_str(elem.attrib['name'])), i)
     elif elem.tag.endswith('Page'):
-        handle_page(onenote, elem, path, i)
+        try:
+            handle_page(onenote, elem, path, i)
+        except:
+            print("Page failed unexpectedly: %s" % path, file=sys.stderr)
 
 if __name__ == "__main__":
     try:
