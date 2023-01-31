@@ -13,6 +13,7 @@ OUTPUT_DIR = os.path.join(os.path.expanduser('~'), "Desktop", "OneNoteExport")
 ASSETS_DIR = "assets"
 PROCESS_RECYCLE_BIN = False
 LOGFILE = 'onenote_to_markdown.log' # Set to None to disable logging
+LIMIT_EXPORT = r'' # Set to i.e. YourNotebook\Notes to limit what is exported
 
 def log(message):
     print(message)
@@ -22,6 +23,9 @@ def log(message):
 
 def safe_str(name):
     return  re.sub(r'[^.a-zA-Z0-9א-ת]', '_', name)
+
+def should_handle(path):
+    return path.startswith(LIMIT_EXPORT)
 
 def extract_pdf_pictures(pdf_path, assets_path, page_name):
     os.makedirs(assets_path, exist_ok=True)
@@ -61,10 +65,13 @@ def fix_image_names(md_path, image_names):
     shutil.move(tmp_path, md_path)
 
 def handle_page(onenote, elem, path, i):
+    safe_name = safe_str("%s_%s" % (str(i).zfill(3), elem.attrib['name']))
+    if not should_handle(os.path.join(path, safe_name)):
+        return
+
     full_path = os.path.join(OUTPUT_DIR, path)
     os.makedirs(full_path, exist_ok=True)
     path_assets = os.path.join(full_path, ASSETS_DIR)
-    safe_name = safe_str("%s_%s" % (str(i).zfill(3), elem.attrib['name']))
     safe_path = os.path.join(full_path, safe_name)
     path_docx = safe_path + '.docx'
     path_pdf = safe_path + '.pdf'
