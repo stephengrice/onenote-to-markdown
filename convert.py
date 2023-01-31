@@ -13,7 +13,8 @@ OUTPUT_DIR = os.path.join(os.path.expanduser('~'), "Desktop", "OneNoteExport")
 ASSETS_DIR = "assets"
 PROCESS_RECYCLE_BIN = False
 LOGFILE = 'onenote_to_markdown.log' # Set to None to disable logging
-LIMIT_EXPORT = r'' # Set to i.e. YourNotebook\Notes to limit what is exported
+# For debugging purposes, set this variable to limit which pages are exported:
+LIMIT_EXPORT = r'' # example: YourNotebook\Notes limits it to the Notes tab/page
 
 def log(message):
     print(message)
