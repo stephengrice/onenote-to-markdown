@@ -24,7 +24,7 @@ def log(message):
             lf.write(f'{message}\n')
 
 def safe_str(name):
-    return  re.sub(r'[^.a-zA-Z0-9א-ת]', '_', name)
+    return  re.sub(r'[^.a-zA-Z0-9一-鿆ぁ-んァ-ヾㄱ-힝々א-ת]', '_', name)
 
 def should_handle(path):
     return path.startswith(LIMIT_EXPORT)
