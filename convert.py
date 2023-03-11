@@ -24,7 +24,7 @@ def log(message):
             lf.write(f'{message}\n')
 
 def safe_str(name):
-    return  re.sub(r'[^.a-zA-Z0-9一-鿆ぁ-んァ-ヾㄱ-힝々א-ת]', '_', name)
+    return re.sub(r"[/\\?%*:|\"<>\x7F\x00-\x1F]", "-", name)
 
 def should_handle(path):
     return path.startswith(LIMIT_EXPORT)
@@ -62,7 +62,7 @@ def fix_image_names(md_path, image_names):
         with open(tmp_path, 'w', encoding='utf-8') as f_tmp:
             body_md = f_md.read()
             for i,name in enumerate(image_names):
-                body_md = re.sub("media\/image" + str(i+1) + "\.[a-zA-Z]+", name, body_md)
+                body_md = re.sub("media\/image" + str(i+1) + "\.[a-zA-ZА-Яа-яЁё]+", name, body_md)
             f_tmp.write(body_md)
     shutil.move(tmp_path, md_path)
 
@@ -88,7 +88,7 @@ def handle_page(onenote, elem, path, i):
         onenote.Publish(elem.attrib['ID'], path_docx, win32.constants.pfWord, "")
         # Convert docx to markdown
         log("Generating markdown: %s" % path_md)
-        os.system('pandoc.exe -i %s -o %s -t markdown-simple_tables-multiline_tables-grid_tables --wrap=none' % (path_docx, path_md))
+        os.system('pandoc.exe -i "%s" -o "%s" -t markdown-simple_tables-multiline_tables-grid_tables --wrap=none' % (path_docx, path_md))
         # Create pdf (for the picture assets)
         onenote.Publish(elem.attrib['ID'], path_pdf, 3, "")
         # Output picture assets to folder
