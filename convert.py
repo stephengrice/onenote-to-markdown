@@ -42,6 +42,7 @@ def extract_pdf_pictures(pdf_path, assets_path, page_name):
             xref = img[0]
             pix = fitz.Pixmap(doc, xref)
             png_name = "%s_%s.png" % (page_name, str(img_num).zfill(3))
+            png_name = png_name.replace(' ', '_')
             png_path = os.path.join(assets_path, png_name)
             log("Writing png: %s" % png_path)
             if pix.n < 5:
